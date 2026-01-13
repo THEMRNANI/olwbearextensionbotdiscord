@@ -245,6 +245,26 @@
 
                 socket.on('connect_error', e => log('Erro Connect: ' + e.message, 'err'));
 
+                // --- NEW REMOTE LISTENERS ---
+                socket.on('owlbear:update:position', async (data) => {
+                    log(`Mover Bot: ${data.tokenId}`);
+                    await OBR.scene.items.updateItems([data.tokenId], (items) => {
+                        items[0].position = data.position;
+                    });
+                });
+
+                socket.on('owlbear:token:move', async (data) => {
+                    // Relative move (for /move command)
+                    await OBR.scene.items.updateItems([data.tokenId], (items) => {
+                        const item = items[0];
+                        // Calculate new pos based on direction/dist... 
+                        // Simplified: assuming grid units
+                        // For now just ignoring or implement later if needed.
+                        // The Bot AI uses absolute position so update:position is key.
+                        log('Movimento Relativo recebido (TODO)');
+                    });
+                });
+
             } catch (e) {
                 log('Erro Fatal: ' + e.message, 'err');
                 resetBtn();
