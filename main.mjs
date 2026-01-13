@@ -40,16 +40,22 @@ function initUI() {
     }
 
     // Event listeners
-    connectBtn.addEventListener('click', handleConnect);
+    connectBtn.addEventListener('click', () => {
+        console.log('Botão Conectar clicado');
+        log('Botão clicado...', 'info');
+        handleConnect();
+    });
     addZoneBtn.addEventListener('click', handleAddZone);
     copyIdBtn.addEventListener('click', handleCopyId);
     botCheckbox.addEventListener('change', handleBotToggle);
 
-    log('v3 - UI inicializada', 'info');
+    log('v4 - UI inicializada', 'info');
 }
 
 // ========== Connection ==========
 async function handleConnect() {
+    log('Iniciando handleConnect...', 'info');
+
     if (isConnected) {
         disconnect();
         return;
@@ -57,10 +63,11 @@ async function handleConnect() {
 
     const serverUrl = serverUrlInput.value.trim();
     if (!serverUrl) {
-        log('Cole a URL do ngrok!', 'error');
+        log('❌ Cole a URL do ngrok!', 'error');
         return;
     }
 
+    log(`Tentando conectar a: ${serverUrl}`, 'info');
     localStorage.setItem('discordBridge_serverUrl', serverUrl);
 
     updateConnectionUI('connecting');
@@ -70,7 +77,8 @@ async function handleConnect() {
     try {
         await connect(serverUrl);
     } catch (error) {
-        log(`Falha: ${error.message}`, 'error');
+        log(`❌ Falha: ${error.message}`, 'error');
+        console.error(error);
         updateConnectionUI('disconnected');
         connectBtn.textContent = 'Conectar';
         connectBtn.disabled = false;
@@ -80,7 +88,12 @@ async function handleConnect() {
 function connect(serverUrl) {
     return new Promise((resolve, reject) => {
         try {
-            socket = io(serverUrl, {
+            if (typeof window.io === 'undefined') {
+                throw new Error('Socket.IO não carregou (window.io undefined)');
+            }
+
+            log('Iniciando socket...', 'info');
+            socket = window.io(serverUrl, {
                 query: { type: 'owlbear' },
                 reconnection: true,
                 reconnectionAttempts: 10,
