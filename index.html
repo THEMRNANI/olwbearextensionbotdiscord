@@ -257,11 +257,27 @@
                     // Relative move (for /move command)
                     await OBR.scene.items.updateItems([data.tokenId], (items) => {
                         const item = items[0];
-                        // Calculate new pos based on direction/dist... 
-                        // Simplified: assuming grid units
-                        // For now just ignoring or implement later if needed.
-                        // The Bot AI uses absolute position so update:position is key.
-                        log('Movimento Relativo recebido (TODO)');
+                        const dpi = OBR.scene.grid.getDpi ? await OBR.scene.grid.getDpi() : 150;
+                        // Assuming data.distance is in grid units (e.g. 5ft = 1 unit? or 1 cell)
+                        // Actually /move command usually sends "cells".
+                        const distPx = data.distance * 150; // default 150px per cell 
+                        // Better to get grid scale
+
+                        let dx = 0, dy = 0;
+                        switch (data.direction) {
+                            case 'N': dy = -distPx; break;
+                            case 'S': dy = distPx; break;
+                            case 'E': dx = distPx; break;
+                            case 'W': dx = -distPx; break;
+                            case 'NE': dx = distPx * 0.7; dy = -distPx * 0.7; break;
+                            case 'NW': dx = -distPx * 0.7; dy = -distPx * 0.7; break;
+                            case 'SE': dx = distPx * 0.7; dy = distPx * 0.7; break;
+                            case 'SW': dx = -distPx * 0.7; dy = distPx * 0.7; break;
+                        }
+
+                        item.position.x += dx;
+                        item.position.y += dy;
+                        log(`Moveu ${data.direction} ${data.distance}`);
                     });
                 });
 
