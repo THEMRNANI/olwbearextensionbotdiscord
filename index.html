@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord RPG Bridge v7</title>
+    <title>Discord RPG Bridge v8</title>
     <style>
         body {
             background-color: #242438;
@@ -109,7 +109,7 @@
 </head>
 
 <body>
-    <h1>v7 - Ferramentas e Menu</h1>
+    <h1>v8 - Bundled Local SDK</h1>
 
     <!-- Conexão -->
     <div id="conn-ui">
@@ -119,10 +119,9 @@
         <div id="status" class="status disconnected">Desconectado</div>
     </div>
 
-    <!-- UI Principal (aparece após conectar) -->
+    <!-- UI Principal -->
     <div id="main-ui" class="hidden">
 
-        <!-- Configuração de Zona (aparece ao selecionar uma Zona H) -->
         <div id="zone-ui" class="hidden">
             <h3>⚙️ Configurar Zona/Item</h3>
             <div class="zone-config">
@@ -152,10 +151,10 @@
         </div>
 
         <div style="margin-top:20px; text-align:center; color:#888; font-size:12px;">
-            <p>💡 <strong>Dicas:</strong></p>
+            <p>💡 <strong>Instruções:</strong></p>
             <ul style="text-align:left; padding-left:20px">
-                <li>Use a ferramenta <strong>"H"</strong> na esquerda para criar áreas de itens.</li>
-                <li>Clique em um token e use os <strong>3 pontinhos</strong> para Copiar ID ou virar Bot.</li>
+                <li>Procure a ferramenta <strong>"H"</strong> na barra lateral do mapa.</li>
+                <li>Clique em um token e use o menu <strong>(3 pontinhos)</strong> para opções do Bot.</li>
             </ul>
         </div>
 
@@ -163,12 +162,11 @@
 
     <div id="log"></div>
 
-    <!-- CARREGAMENTO ROBUSTO -->
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <!-- Usando UMD para garantir carregamento global -->
-    <script src="https://unpkg.com/@owlbear-rodeo/sdk@2.0.0/dist/owlbear-rodeo-sdk.umd.min.js"></script>
 
-    <script>
+    <script type="module">
+        import OBR from './sdk.js';
+
         // --- LOGGING ---
         function log(msg, type = '') {
             const d = document.createElement('div');
@@ -187,7 +185,6 @@
         const mainUi = document.getElementById('main-ui');
         const zoneUi = document.getElementById('zone-ui');
 
-        // Restore URL
         const saved = localStorage.getItem('discordBridge_url');
         if (saved) inpUrl.value = saved;
 
@@ -228,101 +225,86 @@
         }
 
         // --- OBR LOGIC ---
-        // Esperar OBR carregar
-        const checkOBR = setInterval(() => {
-            if (typeof OBR !== 'undefined') {
-                clearInterval(checkOBR);
-                initOBR();
-            } else {
-                log('Esperando OBR...', 'err');
-            }
-        }, 500);
+        log('Iniciando OBR local...', 'info');
 
-        function initOBR() {
-            log('OBR Detectado! Iniciando...');
+        OBR.onReady(() => {
+            log('OBR Pronto (Local)!');
 
-            OBR.onReady(() => {
-                log('OBR Pronto!');
+            // 1. TOOL H
+            OBR.tool.create({
+                id: 'discord-rpg-zone-tool',
+                icons: [{
+                    icon: '/olwbearextensionbotdiscord/icon.svg',
+                    label: 'Zona'
+                }],
+                defaultMode: 'DRAWING',
+                defaultMetadata: { isZone: true, throwable: false, type: 'pedra', range: 'curto' }
+            });
+            log('Ferramenta H criada');
 
-                // 1. CRIAR FERRAMENTA "H" (Items)
-                OBR.tool.create({
-                    id: 'discord-rpg-zone-tool',
-                    icons: [{
-                        icon: '/olwbearextensionbotdiscord/icon.svg', // Usa o mesmo icone por enquanto ou um SVG H
-                        label: 'Zona de Item'
-                    }],
-                    defaultMode: 'DRAWING',
-                    defaultMetadata: { isZone: true, throwable: false, type: 'pedra', range: 'curto' }
-                });
-                log('Ferramenta H criada');
+            // 2. CONTEXT MENU
+            OBR.contextMenu.create({
+                id: 'discord-rpg-copy-id',
+                icons: [{
+                    icon: '/olwbearextensionbotdiscord/icon.svg',
+                    label: 'Copiar ID'
+                }],
+                onClick: (context) => {
+                    const id = context.items[0].id;
+                    navigator.clipboard.writeText(id);
+                    OBR.notification.show('ID Copiado: ' + id);
+                }
+            });
 
-                // 2. CRIAR CONTEXT MENU (3 PONTINHOS)
-                OBR.contextMenu.create({
-                    id: 'discord-rpg-copy-id',
-                    icons: [{
-                        icon: '/olwbearextensionbotdiscord/icon.svg',
-                        label: 'Copiar ID'
-                    }],
-                    onClick: (context) => {
-                        const id = context.items[0].id;
-                        navigator.clipboard.writeText(id);
-                        OBR.notification.show('ID Copiado: ' + id);
+            OBR.contextMenu.create({
+                id: 'discord-rpg-toggle-bot',
+                icons: [{
+                    icon: '/olwbearextensionbotdiscord/icon.svg',
+                    label: 'Alternar Bot'
+                }],
+                onClick: (context) => {
+                    const item = context.items[0];
+                    const isBot = item.metadata?.['discord-rpg-bot'] === true;
+
+                    const newState = !isBot;
+                    OBR.scene.items.updateItems([item.id], (items) => {
+                        items[0].metadata['discord-rpg-bot'] = newState;
+                    });
+
+                    const name = item.name || item.text?.plainText || 'Token';
+                    if (newState) {
+                        socket?.emit('bot:register', { tokenId: item.id, name });
+                        OBR.notification.show('🤖 Agora é BOT');
+                    } else {
+                        socket?.emit('bot:unregister', { tokenId: item.id });
+                        OBR.notification.show('👤 Removido do BOT');
                     }
-                });
+                }
+            });
+            log('Menus criados');
 
-                OBR.contextMenu.create({
-                    id: 'discord-rpg-toggle-bot',
-                    icons: [{
-                        icon: '/olwbearextensionbotdiscord/icon.svg',
-                        label: 'Alternar Bot'
-                    }],
-                    onClick: (context) => {
-                        const item = context.items[0];
-                        const isBot = item.metadata?.['discord-rpg-bot'] === true;
-
-                        // Toggle logic
-                        const newState = !isBot;
-                        OBR.scene.items.updateItems([item.id], (items) => {
-                            items[0].metadata['discord-rpg-bot'] = newState;
-                        });
-
-                        const name = item.name || item.text?.plainText || 'Token';
-                        if (newState) {
-                            socket?.emit('bot:register', { tokenId: item.id, name });
-                            OBR.notification.show(`🤖 ${name} agora é um BOT`);
-                        } else {
-                            socket?.emit('bot:unregister', { tokenId: item.id });
-                            OBR.notification.show(`👤 ${name} não é mais bot`);
-                        }
-                    }
-                });
-                log('Menus de contexto criados');
-
-                // 3. DETECTAR SELEÇÃO PARA CONFIGURAR ZONA
-                OBR.player.onChange(async () => {
-                    const sel = await OBR.player.getSelection();
-                    if (sel.length > 0) {
-                        const items = await OBR.scene.items.getItems([sel[0]]);
-                        const item = items[0];
-                        // Verifica se é uma zona criada pela nossa ferramenta
-                        if (item.metadata && item.metadata.isZone) {
-                            openZoneConfig(item);
-                        } else {
-                            zoneUi.classList.add('hidden');
-                        }
+            // 3. SELECTION LISTENER
+            OBR.player.onChange(async () => {
+                const sel = await OBR.player.getSelection();
+                if (sel.length > 0) {
+                    const items = await OBR.scene.items.getItems([sel[0]]);
+                    const item = items[0];
+                    if (item.metadata && item.metadata.isZone) {
+                        openZoneConfig(item);
                     } else {
                         zoneUi.classList.add('hidden');
                     }
-                });
+                } else {
+                    zoneUi.classList.add('hidden');
+                }
             });
-        }
+        });
 
-        // --- ZONE CONFIG LOGIC ---
+        // --- ZONE CONFIG ---
         function openZoneConfig(item) {
             selectedZoneId = item.id;
             zoneUi.classList.remove('hidden');
 
-            // Load values
             const meta = item.metadata || {};
             document.getElementById('zone-throwable').checked = meta.throwable || false;
             document.getElementById('zone-type').value = meta.type || 'pedra';
@@ -340,18 +322,12 @@
                 items[0].metadata = {
                     ...items[0].metadata,
                     throwable, type, range,
-                    discord_update: Date.now() // force update
+                    discord_update: Date.now()
                 };
             });
 
-            // Enviar pro servidor saber
-            socket?.emit('zone:update', {
-                id: selectedZoneId,
-                throwable, type, range
-            });
-
-            log('Zona Atualizada!', 'success');
-            // OBR.notification.show('Zona config salva!');
+            socket?.emit('zone:update', { id: selectedZoneId, throwable, type, range });
+            log('Zona Salva!', 'success');
         };
 
     </script>
