@@ -160,10 +160,20 @@ function emit(event, data) {
 
 // ========== OBR Integration ==========
 async function initOBR() {
-    if (typeof OBR === 'undefined') {
-        log('Aguardando OBR SDK...', 'warning');
+    // Wait for OBR to be defined (loaded from CDN)
+    let retries = 0;
+    while (typeof window.OBR === 'undefined' && retries < 20) {
+        await new Promise(r => setTimeout(r, 250));
+        retries++;
+    }
+
+    if (typeof window.OBR === 'undefined') {
+        log('Erro: OBR SDK não carregou', 'error');
         return;
     }
+
+    const OBR = window.OBR;
+    log('OBR SDK carregado!', 'success');
 
     OBR.onReady(async () => {
         log('OBR SDK pronto!', 'success');

@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Discord RPG Bridge</title>
     <link rel="stylesheet" href="./style.css">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
 
 <body>
@@ -67,9 +68,11 @@
         </section>
     </div>
 
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@owlbear-rodeo/sdk@2.0.0/dist/owlbear-rodeo-sdk.umd.min.js"></script>
-    <script src="./main.js"></script>
+    <script type="module">
+        import OBR from "https://unpkg.com/@owlbear-rodeo/sdk@3.1.0/lib/index.js";
+        window.OBR = OBR;
+    </script>
+    <script src="./main.js" defer></script>
 </body>
 
 </html>
