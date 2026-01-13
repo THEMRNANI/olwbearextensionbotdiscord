@@ -4,78 +4,363 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord RPG Bridge v4</title>
-    <link rel="stylesheet" href="./style.css">
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script type="importmap">
-        {
-            "imports": {
-                "@owlbear-rodeo/sdk": "https://unpkg.com/@owlbear-rodeo/sdk@3.1.0/lib/index.js"
+    <title>Discord RPG Bridge v5 - Debug</title>
+    <style>
+        body {
+            background-color: #242438;
+            color: #E2E2E8;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 16px;
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: #FFFFFF;
+            font-weight: 600;
+            margin: 0 0 12px 0;
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            text-align: center;
+            border-bottom: 1px solid #3E3E5E;
+            padding-bottom: 12px;
+        }
+
+        h2 {
+            font-size: 1rem;
+            color: #BBBBCC;
+            margin-top: 16px;
+        }
+
+        .input-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #3E3E5E;
+            background-color: #1A1A2E;
+            color: white;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        button.primary {
+            background-color: #5865F2;
+            color: white;
+            margin-bottom: 8px;
+        }
+
+        button.secondary {
+            background-color: #3E3E5E;
+            color: white;
+            font-size: 0.85rem;
+        }
+
+        button.small-btn {
+            width: auto;
+            padding: 4px 8px;
+            margin-left: 8px;
+            font-size: 0.8rem;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            margin-top: 8px;
+        }
+
+        .dot {
+            height: 8px;
+            width: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+            display: inline-block;
+        }
+
+        .status.connected .dot {
+            background-color: #43B581;
+            box-shadow: 0 0 8px #43B581;
+        }
+
+        .status.disconnected .dot {
+            background-color: #F04747;
+        }
+
+        .status.connecting .dot {
+            background-color: #FAA61A;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0.4;
             }
         }
-    </script>
+
+        .hidden {
+            display: none !important;
+        }
+
+        #log-container {
+            margin-top: 20px;
+            background: #111;
+            border: 1px solid #444;
+            height: 150px;
+            overflow-y: auto;
+            padding: 5px;
+            font-family: monospace;
+            font-size: 11px;
+            color: #0f0;
+        }
+
+        .log-entry {
+            border-bottom: 1px solid #222;
+            padding: 2px 0;
+        }
+
+        .log-entry.error {
+            color: #ff5555;
+        }
+
+        .token-item {
+            padding: 8px;
+            border-bottom: 1px solid #3E3E5E;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .token-item:hover {
+            background-color: #33334d;
+        }
+
+        .token-item.selected {
+            background-color: #3E3E5E;
+            border-left: 3px solid #5865F2;
+        }
+    </style>
 </head>
 
 <body>
-    <div id="app">
-        <header>
-            <h1>🎮 Discord Bridge v4</h1>
-        </header>
 
-        <section id="connection-section">
-            <h2>Conexão com Servidor</h2>
-            <div class="input-group">
-                <label for="server-url">URL do Servidor (ngrok):</label>
-                <input type="text" id="server-url" placeholder="https://seu-link.ngrok-free.dev">
-                <small style="color: #9B9BB8; font-size: 0.75rem;">Cole a URL do ngrok aqui</small>
-            </div>
-            <button id="connect-btn" class="primary">Conectar</button>
-            <div id="connection-status" class="status disconnected">
-                <span class="dot"></span>
-                <span class="text">Desconectado</span>
-            </div>
-        </section>
+    <header>
+        <h1>🎮 Discord Bridge v5 (Simples)</h1>
+    </header>
 
-        <section id="tokens-section" class="hidden">
-            <h2>Tokens no Mapa</h2>
-            <div id="tokens-list"></div>
-        </section>
-
-        <section id="hidden-zones-section" class="hidden">
-            <h2>Zonas Escondidas</h2>
-            <button id="add-zone-btn" class="secondary">+ Adicionar Zona</button>
-            <div id="zones-list"></div>
-        </section>
-
-        <section id="selected-token-section" class="hidden">
-            <h2>Token Selecionado</h2>
-            <div id="selected-info">
-                <p><strong>Nome:</strong> <span id="selected-name">-</span></p>
-                <p><strong>ID:</strong> <span id="selected-id">-</span> <button id="copy-id-btn" class="small-btn"
-                        title="Copiar ID">📋</button></p>
-                <p><strong>Posição:</strong> <span id="selected-position">-</span></p>
-                <p><strong>Tamanho:</strong> <span id="selected-size">-</span></p>
-            </div>
-
-            <div class="bot-control">
-                <label class="checkbox-container">
-                    <input type="checkbox" id="bot-checkbox">
-                    <span class="checkmark"></span>
-                    🤖 Controlar como Bot
-                </label>
-            </div>
-
-            <h3>Distâncias</h3>
-            <div id="distances-list"></div>
-        </section>
-
-        <section id="log-section">
-            <h2>Log</h2>
-            <div id="log-container"></div>
-        </section>
+    <div id="connection-box">
+        <label>URL do ngrok:</label>
+        <input type="text" id="server-url" placeholder="https://....ngrok-free.dev">
+        <button id="btn-connect" class="primary" style="margin-top:10px">CONECTAR</button>
+        <div id="status-display" class="status disconnected">
+            <span class="dot"></span> <span id="status-text">Desconectado</span>
+        </div>
     </div>
 
-    <script type="module" src="./main.mjs"></script>
+    <div id="main-ui" class="hidden">
+        <hr style="border-color:#444; margin:15px 0">
+
+        <div id="selection-box" style="background:#333; padding:10px; border-radius:4px;">
+            <h3>Selecionado: <span id="sel-name">Nenhum</span></h3>
+            <p>ID: <span id="sel-id" style="font-size:10px; color:#aaa">...</span></p>
+            <button id="btn-copy" class="secondary">Copiar ID</button>
+            <br><br>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; background:#222; padding:5px;">
+                <input type="checkbox" id="chk-bot">
+                🤖 Controlar como BOT
+            </label>
+        </div>
+    </div>
+
+    <h3>Logs:</h3>
+    <div id="log-container"></div>
+
+    <!-- CARREGAR EXPLICITAMENTE DO UNPKG -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+    <script>
+        // Logger manual
+        function log(msg, type = 'info') {
+            const div = document.createElement('div');
+            div.className = 'log-entry ' + type;
+            div.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            document.getElementById('log-container').prepend(div);
+            console.log(msg);
+        }
+
+        log('Iniciando v5...');
+
+        // Globais
+        let socket = null;
+        let OBR = null;
+
+        // Elementos
+        const btnConnect = document.getElementById('btn-connect');
+        const inpUrl = document.getElementById('server-url');
+        const statusText = document.getElementById('status-text');
+        const statusDisplay = document.getElementById('status-display');
+        const mainUI = document.getElementById('main-ui');
+
+        // Elementos de seleção
+        const selName = document.getElementById('sel-name');
+        const selId = document.getElementById('sel-id');
+        const btnCopy = document.getElementById('btn-copy');
+        const chkBot = document.getElementById('chk-bot');
+
+        // Carregar URL salva
+        const savedUrl = localStorage.getItem('discordBridge_serverUrl');
+        if (savedUrl) inpUrl.value = savedUrl;
+
+        // BOTÃO CONECTAR
+        btnConnect.onclick = async () => {
+            log('Botão clicado!');
+            const url = inpUrl.value.trim();
+            if (!url) return log('URL vazia!', 'error');
+
+            localStorage.setItem('discordBridge_serverUrl', url);
+
+            btnConnect.disabled = true;
+            btnConnect.innerText = 'Conectando...';
+            statusText.innerText = 'Conectando...';
+            statusDisplay.className = 'status connecting';
+
+            try {
+                if (typeof io === 'undefined') throw new Error('Socket.IO não carregou!');
+
+                log(`Conectando a ${url}...`);
+                socket = io(url, {
+                    query: { type: 'owlbear' },
+                    transports: ['websocket', 'polling']
+                });
+
+                socket.on('connect', () => {
+                    log('✅ Conectado ao servidor!');
+                    statusText.innerText = 'Conectado';
+                    statusDisplay.className = 'status connected';
+                    btnConnect.innerText = 'Desconectar';
+                    btnConnect.disabled = false;
+                    btnConnect.onclick = () => location.reload(); // Simples desconexão
+
+                    // Mostrar UI manual e iniciar OBR
+                    mainUI.classList.remove('hidden');
+                    socket.emit('sync:request', {});
+                });
+
+                socket.on('connect_error', (err) => {
+                    log('Erro conexão: ' + err.message, 'error');
+                    resetBtn();
+                });
+
+                // Bot Control handlers
+                chkBot.onchange = () => {
+                    const id = selId.innerText;
+                    if (id === '...') return;
+
+                    if (chkBot.checked) {
+                        socket.emit('bot:register', { tokenId: id, name: selName.innerText });
+                        log('Registrado como BOT');
+                    } else {
+                        socket.emit('bot:unregister', { tokenId: id });
+                        log('Desregistrado BOT');
+                    }
+                };
+
+            } catch (e) {
+                log('Erro fatal: ' + e.message, 'error');
+                resetBtn();
+            }
+        };
+
+        function resetBtn() {
+            btnConnect.disabled = false;
+            btnConnect.innerText = 'Conectar';
+            statusText.innerText = 'Erro';
+            statusDisplay.className = 'status disconnected';
+        }
+
+        // CARREGAR OBR DINAMICAMENTE
+        log('Carregando OBR SDK...');
+        import('https://unpkg.com/@owlbear-rodeo/sdk@3.1.0/lib/index.js')
+            .then(module => {
+                OBR = module.default || module; // Handle default export quirks
+                window.OBR = OBR;
+                log('✅ OBR SDK Carregado!');
+
+                OBR.onReady(() => {
+                    log('✅ OBR Pronto!');
+
+                    // Listener de seleção
+                    OBR.player.onChange(async () => {
+                        const selection = await OBR.player.getSelection();
+                        if (selection && selection.length > 0) {
+                            const id = selection[0];
+                            const items = await OBR.scene.items.getItems([id]);
+                            if (items.length > 0) {
+                                const item = items[0];
+                                updateSelection(item);
+                            }
+                        } else {
+                            selName.innerText = 'Nenhum';
+                            selId.innerText = '...';
+                            chkBot.checked = false;
+                        }
+                    });
+                });
+            })
+            .catch(err => log('Erro OBR: ' + err.message, 'error'));
+
+        function updateSelection(item) {
+            selName.innerText = item.name || item.text?.plainText || 'Sem nome';
+            selId.innerText = item.id;
+            // Aqui precisaria saber se ele já é bot pelo servidor, 
+            // mas por enquanto vamos deixar manual ou resetado
+            // Idealmente receberíamos o estado do servidor.
+        }
+
+        btnCopy.onclick = () => {
+            const id = selId.innerText;
+            if (id !== '...') {
+                navigator.clipboard.writeText(id);
+                log('ID copiado!');
+            }
+        };
+
+    </script>
 </body>
 
 </html>
