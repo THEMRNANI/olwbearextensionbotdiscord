@@ -1,9 +1,9 @@
 {
-    "name": "Discord Bridge v6",
-    "version": "1.0.6",
+    "name": "Discord Bridge v7",
+    "version": "1.0.7",
     "manifest_version": 1,
     "action": {
-        "title": "Discord v6",
+        "title": "Discord v7",
         "icon": "/olwbearextensionbotdiscord/icon.svg",
         "popover": "/olwbearextensionbotdiscord/index.html",
         "width": 400,
