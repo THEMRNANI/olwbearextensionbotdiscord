@@ -1,0 +1,13 @@
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="discordGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#5865F2"/>
+      <stop offset="100%" style="stop-color:#7B68EE"/>
+    </linearGradient>
+  </defs>
+  <circle cx="50" cy="50" r="45" fill="url(#discordGrad)"/>
+  <path d="M30 40 Q35 35 45 38 L55 38 Q65 35 70 40 L70 55 Q65 65 55 62 L50 58 L45 62 Q35 65 30 55 Z" 
+        fill="white" opacity="0.9"/>
+  <circle cx="40" cy="48" r="4" fill="#5865F2"/>
+  <circle cx="60" cy="48" r="4" fill="#5865F2"/>
+</svg>

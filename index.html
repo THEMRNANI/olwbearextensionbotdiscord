@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord RPG Bridge</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+    <div id="app">
+        <header>
+            <h1>🎮 Discord Bridge</h1>
+        </header>
+
+        <section id="connection-section">
+            <h2>Conexão com Servidor</h2>
+            <div class="input-group">
+                <label for="server-url">URL do Servidor (ngrok):</label>
+                <input type="text" id="server-url" placeholder="https://seu-link.ngrok-free.dev">
+                <small style="color: #9B9BB8; font-size: 0.75rem;">Cole a URL do ngrok aqui</small>
+            </div>
+            <button id="connect-btn" class="primary">Conectar</button>
+            <div id="connection-status" class="status disconnected">
+                <span class="dot"></span>
+                <span class="text">Desconectado</span>
+            </div>
+        </section>
+
+        <section id="tokens-section" class="hidden">
+            <h2>Tokens no Mapa</h2>
+            <div id="tokens-list"></div>
+        </section>
+
+        <section id="hidden-zones-section" class="hidden">
+            <h2>Zonas Escondidas</h2>
+            <button id="add-zone-btn" class="secondary">+ Adicionar Zona</button>
+            <div id="zones-list"></div>
+        </section>
+
+        <section id="selected-token-section" class="hidden">
+            <h2>Token Selecionado</h2>
+            <div id="selected-info">
+                <p><strong>Nome:</strong> <span id="selected-name">-</span></p>
+                <p><strong>ID:</strong> <span id="selected-id">-</span> <button id="copy-id-btn" class="small-btn"
+                        title="Copiar ID">📋</button></p>
+                <p><strong>Posição:</strong> <span id="selected-position">-</span></p>
+                <p><strong>Tamanho:</strong> <span id="selected-size">-</span></p>
+            </div>
+
+            <div class="bot-control">
+                <label class="checkbox-container">
+                    <input type="checkbox" id="bot-checkbox">
+                    <span class="checkmark"></span>
+                    🤖 Controlar como Bot
+                </label>
+            </div>
+
+            <h3>Distâncias</h3>
+            <div id="distances-list"></div>
+        </section>
+
+        <section id="log-section">
+            <h2>Log</h2>
+            <div id="log-container"></div>
+        </section>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@owlbear-rodeo/sdk@2.0.0/dist/owlbear-rodeo-sdk.umd.min.js"></script>
+    <script src="./main.js"></script>
+</body>
+
+</html>
