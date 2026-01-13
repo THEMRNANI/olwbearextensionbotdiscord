@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord RPG Bridge v8</title>
+    <title>Discord RPG Bridge v9</title>
     <style>
         body {
             background-color: #242438;
@@ -61,6 +61,11 @@
             background: #3E3E5E;
         }
 
+        button.action {
+            background: #FFAA00;
+            color: #000;
+        }
+
         .status {
             padding: 8px;
             text-align: center;
@@ -105,11 +110,20 @@
             padding: 5px;
             color: #0f0;
         }
+
+        .turn-panel {
+            background: #222;
+            border: 1px solid #444;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
     </style>
 </head>
 
 <body>
-    <h1>v8 - Bundled Local SDK</h1>
+    <h1>v9 - Automação & Paredes</h1>
 
     <!-- Conexão -->
     <div id="conn-ui">
@@ -122,39 +136,51 @@
     <!-- UI Principal -->
     <div id="main-ui" class="hidden">
 
+        <!-- TURNOS -->
+        <div class="turn-panel">
+            <h3>⏳ Controle de Turno</h3>
+            <button id="btn-next-turn" class="action">⏩ PRÓXIMO TURNO</button>
+            <small style="color:#888">Avança a vez no Discord</small>
+        </div>
+
+        <!-- CONFIG ZONA -->
         <div id="zone-ui" class="hidden">
             <h3>⚙️ Configurar Zona/Item</h3>
             <div class="zone-config">
-                <label>
-                    <input type="checkbox" id="zone-throwable" style="width:auto"> Arremessável
-                </label>
-
-                <label>Tipo de Item:</label>
-                <select id="zone-type">
-                    <option value="pedra">🪨 Pedra</option>
-                    <option value="caixa">📦 Caixa</option>
-                    <option value="barril">🛢️ Barril</option>
-                    <option value="arma">⚔️ Arma</option>
-                    <option value="pocao">🧪 Poção</option>
+                <label>Tipo de Zona:</label>
+                <select id="zone-category">
+                    <option value="item">📦 Item / Objeto</option>
+                    <option value="wall">🧱 Parede / Obstáculo</option>
                 </select>
 
-                <label>Alcance:</label>
-                <select id="zone-range">
-                    <option value="curto">Curto (1.5m)</option>
-                    <option value="medio">Médio (9m)</option>
-                    <option value="longo">Longo (18m)</option>
-                </select>
+                <div id="item-options">
+                    <label>
+                        <input type="checkbox" id="zone-throwable" style="width:auto"> Arremessável
+                    </label>
+                    <label>Tipo de Item:</label>
+                    <select id="zone-type">
+                        <option value="pedra">🪨 Pedra</option>
+                        <option value="caixa">📦 Caixa</option>
+                        <option value="barril">🛢️ Barril</option>
+                        <option value="arma">⚔️ Arma</option>
+                        <option value="pocao">🧪 Poção</option>
+                    </select>
+                </div>
+
+                <div id="wall-options" class="hidden">
+                    <small style="color:#aaa">O Bot NÃO conseguirá ver ou andar através desta zona.</small>
+                </div>
 
                 <button id="btn-save-zone" class="secondary" style="margin-top:10px">Salvar Configuração</button>
-                <small style="color:#888; display:block; text-align:center">Selecione uma zona "H" para editar</small>
             </div>
         </div>
 
         <div style="margin-top:20px; text-align:center; color:#888; font-size:12px;">
-            <p>💡 <strong>Instruções:</strong></p>
+            <p>💡 <strong>Dicas v9:</strong></p>
             <ul style="text-align:left; padding-left:20px">
-                <li>Procure a ferramenta <strong>"H"</strong> na barra lateral do mapa.</li>
-                <li>Clique em um token e use o menu <strong>(3 pontinhos)</strong> para opções do Bot.</li>
+                <li>Botão <strong>"H"</strong> cria Zona (Item ou Parede).</li>
+                <li><strong>Próximo Turno</strong> avança o combate.</li>
+                <li><strong>3 Pontinhos</strong> no token para opções de Bot.</li>
             </ul>
         </div>
 
@@ -184,6 +210,12 @@
         const statusDiv = document.getElementById('status');
         const mainUi = document.getElementById('main-ui');
         const zoneUi = document.getElementById('zone-ui');
+        const btnNextTurn = document.getElementById('btn-next-turn');
+
+        // Zone Config Refs
+        const selCategory = document.getElementById('zone-category');
+        const itemOpts = document.getElementById('item-options');
+        const wallOpts = document.getElementById('wall-options');
 
         const saved = localStorage.getItem('discordBridge_url');
         if (saved) inpUrl.value = saved;
@@ -224,11 +256,17 @@
             btnConnect.innerText = 'CONECTAR';
         }
 
-        // --- OBR LOGIC ---
-        log('Iniciando OBR local...', 'info');
+        // --- NEXT TURN ---
+        btnNextTurn.onclick = () => {
+            if (socket) {
+                socket.emit('turn:next', {});
+                log('⏩ Avançando Turno...');
+            }
+        };
 
+        // --- OBR LOGIC ---
         OBR.onReady(() => {
-            log('OBR Pronto (Local)!');
+            log('OBR Pronto (v9)!');
 
             // 1. TOOL H
             OBR.tool.create({
@@ -238,17 +276,13 @@
                     label: 'Zona'
                 }],
                 defaultMode: 'DRAWING',
-                defaultMetadata: { isZone: true, throwable: false, type: 'pedra', range: 'curto' }
+                defaultMetadata: { isZone: true, category: 'item', throwable: false, type: 'pedra' }
             });
-            log('Ferramenta H criada');
 
             // 2. CONTEXT MENU
             OBR.contextMenu.create({
                 id: 'discord-rpg-copy-id',
-                icons: [{
-                    icon: '/olwbearextensionbotdiscord/icon.svg',
-                    label: 'Copiar ID'
-                }],
+                icons: [{ icon: '/olwbearextensionbotdiscord/icon.svg', label: 'Copiar ID' }],
                 onClick: (context) => {
                     const id = context.items[0].id;
                     navigator.clipboard.writeText(id);
@@ -258,19 +292,14 @@
 
             OBR.contextMenu.create({
                 id: 'discord-rpg-toggle-bot',
-                icons: [{
-                    icon: '/olwbearextensionbotdiscord/icon.svg',
-                    label: 'Alternar Bot'
-                }],
+                icons: [{ icon: '/olwbearextensionbotdiscord/icon.svg', label: 'Alternar Bot' }],
                 onClick: (context) => {
                     const item = context.items[0];
                     const isBot = item.metadata?.['discord-rpg-bot'] === true;
-
                     const newState = !isBot;
                     OBR.scene.items.updateItems([item.id], (items) => {
                         items[0].metadata['discord-rpg-bot'] = newState;
                     });
-
                     const name = item.name || item.text?.plainText || 'Token';
                     if (newState) {
                         socket?.emit('bot:register', { tokenId: item.id, name });
@@ -281,7 +310,6 @@
                     }
                 }
             });
-            log('Menus criados');
 
             // 3. SELECTION LISTENER
             OBR.player.onChange(async () => {
@@ -289,7 +317,7 @@
                 if (sel.length > 0) {
                     const items = await OBR.scene.items.getItems([sel[0]]);
                     const item = items[0];
-                    if (item.metadata && item.metadata.isZone) {
+                    if (item.metadata && (item.metadata.isZone || item.metadata.isWall)) {
                         openZoneConfig(item);
                     } else {
                         zoneUi.classList.add('hidden');
@@ -298,36 +326,87 @@
                     zoneUi.classList.add('hidden');
                 }
             });
+
+            // 4. MAP CHANGE LISTENER (Sync Walls)
+            OBR.scene.items.onChange(async (items) => {
+                const walls = items.filter(i => i.metadata && i.metadata.category === 'wall');
+                if (walls.length > 0) {
+                    // Can sync walls here if needed, but usually we do it on save
+                }
+            });
         });
 
         // --- ZONE CONFIG ---
+        selCategory.onchange = () => {
+            if (selCategory.value === 'wall') {
+                itemOpts.classList.add('hidden');
+                wallOpts.classList.remove('hidden');
+            } else {
+                itemOpts.classList.remove('hidden');
+                wallOpts.classList.add('hidden');
+            }
+        };
+
         function openZoneConfig(item) {
             selectedZoneId = item.id;
             zoneUi.classList.remove('hidden');
 
             const meta = item.metadata || {};
+            selCategory.value = meta.category || 'item';
+            selCategory.onchange(); // trigger UI update
+
             document.getElementById('zone-throwable').checked = meta.throwable || false;
             document.getElementById('zone-type').value = meta.type || 'pedra';
-            document.getElementById('zone-range').value = meta.range || 'curto';
         }
 
         document.getElementById('btn-save-zone').onclick = async () => {
             if (!selectedZoneId) return;
 
+            const category = selCategory.value;
             const throwable = document.getElementById('zone-throwable').checked;
             const type = document.getElementById('zone-type').value;
-            const range = document.getElementById('zone-range').value;
 
+            // Update Metadata
             await OBR.scene.items.updateItems([selectedZoneId], (items) => {
-                items[0].metadata = {
-                    ...items[0].metadata,
-                    throwable, type, range,
+                const item = items[0];
+                item.metadata = {
+                    ...item.metadata,
+                    category,
+                    isZone: true,
+                    isWall: category === 'wall', // Helper for fast lookup
+                    throwable, type,
                     discord_update: Date.now()
                 };
+
+                // Visual feedback: Walls are Red, Items are Orange
+                if (item.style) {
+                    item.style.strokeColor = category === 'wall' ? '#FF0000' : '#FFAA00';
+                    item.style.fillColor = category === 'wall' ? '#FF0000' : '#FFAA00';
+                }
             });
 
-            socket?.emit('zone:update', { id: selectedZoneId, throwable, type, range });
-            log('Zona Salva!', 'success');
+            // Get geometry for obstacles
+            let obstacleData = null;
+            if (category === 'wall') {
+                const items = await OBR.scene.items.getItems([selectedZoneId]);
+                const item = items[0];
+                obstacleData = {
+                    id: item.id,
+                    type: 'wall',
+                    position: item.position,
+                    rotation: item.rotation,
+                    width: item.width, // Assuming Shape
+                    height: item.height,
+                    points: item.points // If it's a line/poly
+                };
+            }
+
+            socket?.emit('zone:update', {
+                id: selectedZoneId,
+                category, throwable, type,
+                obstacleData
+            });
+            log('Zona Salva! ' + (category === 'wall' ? '(Parede)' : '(Item)'), 'success');
         };
 
     </script>
