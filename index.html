@@ -4,15 +4,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord RPG Bridge</title>
+    <title>Discord RPG Bridge v3</title>
     <link rel="stylesheet" href="./style.css">
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "@owlbear-rodeo/sdk": "https://unpkg.com/@owlbear-rodeo/sdk@3.1.0/lib/index.js"
+            }
+        }
+    </script>
 </head>
 
 <body>
     <div id="app">
         <header>
-            <h1>🎮 Discord Bridge</h1>
+            <h1>🎮 Discord Bridge v3</h1>
         </header>
 
         <section id="connection-section">
@@ -68,11 +75,7 @@
         </section>
     </div>
 
-    <script type="module">
-        import OBR from "https://unpkg.com/@owlbear-rodeo/sdk@3.1.0/lib/index.js";
-        window.OBR = OBR;
-    </script>
-    <script src="./main.js" defer></script>
+    <script type="module" src="./main.mjs"></script>
 </body>
 
 </html>

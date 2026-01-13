@@ -1,9 +1,9 @@
 {
-    "name": "Discord RPG Bridge v2",
-    "version": "1.0.1",
+    "name": "Discord Bridge v3",
+    "version": "1.0.3",
     "manifest_version": 1,
     "action": {
-        "title": "Discord Bridge",
+        "title": "Discord v3",
         "icon": "/olwbearextensionbotdiscord/icon.svg",
         "popover": "/olwbearextensionbotdiscord/index.html",
         "width": 400,
