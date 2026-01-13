@@ -2,7 +2,6 @@
     "name": "Discord RPG Bridge",
     "version": "1.0.0",
     "manifest_version": 1,
-    "homepage": "https://github.com/THEMRNANI/olwbearextensionbotdiscord",
     "action": {
         "title": "Discord Bridge",
         "icon": "/olwbearextensionbotdiscord/icon.svg",
