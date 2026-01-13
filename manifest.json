@@ -1,6 +1,6 @@
 {
-    "name": "Discord RPG Bridge",
-    "version": "1.0.0",
+    "name": "Discord RPG Bridge v2",
+    "version": "1.0.1",
     "manifest_version": 1,
     "action": {
         "title": "Discord Bridge",
