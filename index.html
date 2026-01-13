@@ -285,51 +285,64 @@
         };
 
         // --- OBR LOGIC ---
-        OBR.onReady(() => {
-            log('OBR Pronto (v9)!');
+        OBR.onReady(async () => {
+            log('OBR Pronto (v11)!');
 
-            // 1. TOOL H
-            OBR.tool.create({
-                id: 'discord-rpg-zone-tool',
-                icons: [{
-                    icon: '/olwbearextensionbotdiscord/icon.svg',
-                    label: 'Zona'
-                }],
-                defaultMode: 'DRAWING',
-                defaultMetadata: { isZone: true, category: 'item', throwable: false, type: 'pedra' }
-            });
+            try {
+                log('Criando Ferramenta H...');
+                await OBR.tool.create({
+                    id: 'discord-rpg-zone-tool',
+                    icons: [{
+                        icon: '/olwbearextensionbotdiscord/icon.svg',
+                        label: 'Zona'
+                    }],
+                    defaultMode: 'DRAWING',
+                    defaultMetadata: { isZone: true, category: 'item', throwable: false, type: 'pedra' }
+                });
+                log('✅ Ferramenta H Criada!');
+            } catch (e) {
+                log('❌ Erro criando H: ' + e.message, 'err');
+            }
 
             // 2. CONTEXT MENU
-            OBR.contextMenu.create({
-                id: 'discord-rpg-copy-id',
-                icons: [{ icon: '/olwbearextensionbotdiscord/icon.svg', label: 'Copiar ID' }],
-                onClick: (context) => {
-                    const id = context.items[0].id;
-                    navigator.clipboard.writeText(id);
-                    OBR.notification.show('ID Copiado: ' + id);
-                }
-            });
-
-            OBR.contextMenu.create({
-                id: 'discord-rpg-toggle-bot',
-                icons: [{ icon: '/olwbearextensionbotdiscord/icon.svg', label: 'Alternar Bot' }],
-                onClick: (context) => {
-                    const item = context.items[0];
-                    const isBot = item.metadata?.['discord-rpg-bot'] === true;
-                    const newState = !isBot;
-                    OBR.scene.items.updateItems([item.id], (items) => {
-                        items[0].metadata['discord-rpg-bot'] = newState;
-                    });
-                    const name = item.name || item.text?.plainText || 'Token';
-                    if (newState) {
-                        socket?.emit('bot:register', { tokenId: item.id, name });
-                        OBR.notification.show('🤖 Agora é BOT');
-                    } else {
-                        socket?.emit('bot:unregister', { tokenId: item.id });
-                        OBR.notification.show('👤 Removido do BOT');
+            try {
+                await OBR.contextMenu.create({
+                    id: 'discord-rpg-copy-id',
+                    icons: [{ icon: '/olwbearextensionbotdiscord/icon.svg', label: 'Copiar ID' }],
+                    onClick: (context) => {
+                        const id = context.items[0].id;
+                        navigator.clipboard.writeText(id);
+                        OBR.notification.show('ID Copiado: ' + id);
                     }
-                }
-            });
+                });
+                log('✅ Context Menu ID Criado');
+            } catch (e) { log('Erro Menu ID: ' + e.message, 'err'); }
+
+            try {
+                await OBR.contextMenu.create({
+                    id: 'discord-rpg-toggle-bot',
+                    icons: [{ icon: '/olwbearextensionbotdiscord/icon.svg', label: 'Alternar Bot' }],
+                    onClick: (context) => {
+                        const item = context.items[0];
+                        const isBot = item.metadata?.['discord-rpg-bot'] === true;
+                        const newState = !isBot;
+                        OBR.scene.items.updateItems([item.id], (items) => {
+                            items[0].metadata['discord-rpg-bot'] = newState;
+                        });
+                        const name = item.name || item.text?.plainText || 'Token';
+                        if (newState) {
+                            socket?.emit('bot:register', { tokenId: item.id, name });
+                            OBR.notification.show('🤖 Agora é BOT');
+                        } else {
+                            socket?.emit('bot:unregister', { tokenId: item.id });
+                            OBR.notification.show('👤 Removido do BOT');
+                        }
+                    }
+                });
+                log('✅ Context Menu Bot Criado');
+            } catch (e) { log('Erro Menu Bot: ' + e.message, 'err'); }
+
+            // 3. SELECTION LISTENER
 
             // 3. SELECTION LISTENER
             OBR.player.onChange(async () => {

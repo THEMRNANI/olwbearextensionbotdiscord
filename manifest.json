@@ -1,9 +1,9 @@
 {
-    "name": "Discord Bridge v10",
-    "version": "1.0.10",
+    "name": "Discord Bridge v11",
+    "version": "1.0.11",
     "manifest_version": 1,
     "action": {
-        "title": "Discord v10",
+        "title": "Discord v11",
         "icon": "/olwbearextensionbotdiscord/icon.svg",
         "popover": "/olwbearextensionbotdiscord/index.html",
         "width": 400,
