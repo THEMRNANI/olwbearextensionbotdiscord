@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord RPG Bridge v5 - Debug</title>
+    <title>Discord RPG Bridge v6</title>
     <style>
         body {
             background-color: #242438;
@@ -18,51 +18,44 @@
         h2,
         h3 {
             color: #FFFFFF;
-            font-weight: 600;
-            margin: 0 0 12px 0;
+            margin: 0 0 10px 0;
         }
 
         h1 {
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             text-align: center;
             border-bottom: 1px solid #3E3E5E;
-            padding-bottom: 12px;
+            padding-bottom: 10px;
         }
 
-        h2 {
-            font-size: 1rem;
-            color: #BBBBCC;
-            margin-top: 16px;
-        }
-
-        .input-group {
-            margin-bottom: 12px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 6px;
+        h3 {
             font-size: 0.9rem;
+            color: #BBBBCC;
+            margin-top: 15px;
+            border-bottom: 1px dashed #444;
+            padding-bottom: 5px;
         }
 
         input[type="text"] {
             width: 100%;
-            padding: 8px 12px;
-            border-radius: 6px;
-            border: 1px solid #3E3E5E;
-            background-color: #1A1A2E;
+            padding: 8px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: #1A1A2E;
             color: white;
             box-sizing: border-box;
         }
 
         button {
             width: 100%;
-            padding: 10px;
-            border-radius: 6px;
+            padding: 8px;
+            border-radius: 4px;
             border: none;
-            font-weight: 600;
+            font-weight: bold;
             cursor: pointer;
             transition: opacity 0.2s;
+            margin-bottom: 5px;
         }
 
         button:hover {
@@ -71,65 +64,47 @@
 
         button:disabled {
             opacity: 0.5;
-            cursor: not-allowed;
         }
 
         button.primary {
-            background-color: #5865F2;
+            background: #5865F2;
             color: white;
-            margin-bottom: 8px;
         }
 
         button.secondary {
-            background-color: #3E3E5E;
+            background: #3E3E5E;
             color: white;
-            font-size: 0.85rem;
-        }
-
-        button.small-btn {
-            width: auto;
-            padding: 4px 8px;
-            margin-left: 8px;
             font-size: 0.8rem;
         }
 
+        button.danger {
+            background: #ED4245;
+            color: white;
+            width: auto;
+            padding: 2px 6px;
+            font-size: 12px;
+            float: right;
+        }
+
         .status {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 8px;
+            text-align: center;
+            font-size: 0.8rem;
+            padding: 5px;
+            margin-bottom: 15px;
+            border-radius: 4px;
             background: rgba(0, 0, 0, 0.2);
-            border-radius: 6px;
-            font-size: 0.9rem;
-            margin-top: 8px;
         }
 
-        .dot {
-            height: 8px;
-            width: 8px;
-            border-radius: 50%;
-            margin-right: 8px;
-            display: inline-block;
+        .status.connected {
+            color: #43B581;
         }
 
-        .status.connected .dot {
-            background-color: #43B581;
-            box-shadow: 0 0 8px #43B581;
+        .status.disconnected {
+            color: #F04747;
         }
 
-        .status.disconnected .dot {
-            background-color: #F04747;
-        }
-
-        .status.connecting .dot {
-            background-color: #FAA61A;
-            animation: blink 1s infinite;
-        }
-
-        @keyframes blink {
-            50% {
-                opacity: 0.4;
-            }
+        .status.connecting {
+            color: #FAA61A;
         }
 
         .hidden {
@@ -137,42 +112,42 @@
         }
 
         #log-container {
-            margin-top: 20px;
+            margin-top: 15px;
             background: #111;
             border: 1px solid #444;
-            height: 150px;
+            height: 100px;
             overflow-y: auto;
             padding: 5px;
             font-family: monospace;
-            font-size: 11px;
+            font-size: 10px;
             color: #0f0;
         }
 
-        .log-entry {
-            border-bottom: 1px solid #222;
-            padding: 2px 0;
-        }
-
-        .log-entry.error {
-            color: #ff5555;
-        }
-
-        .token-item {
+        .list-item {
             padding: 8px;
-            border-bottom: 1px solid #3E3E5E;
+            background: #2f2f3d;
+            margin-bottom: 4px;
+            border-radius: 4px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+
+        .list-item:hover {
+            background: #38384a;
+        }
+
+        .token-entry {
             cursor: pointer;
         }
 
-        .token-item:hover {
-            background-color: #33334d;
+        .token-entry:hover {
+            background: #444;
         }
 
-        .token-item.selected {
-            background-color: #3E3E5E;
+        .token-entry.selected {
             border-left: 3px solid #5865F2;
+            background: #3E3E5E;
         }
     </style>
 </head>
@@ -180,185 +155,269 @@
 <body>
 
     <header>
-        <h1>🎮 Discord Bridge v5 (Simples)</h1>
+        <h1>🎮 Discord Bridge v6</h1>
     </header>
 
     <div id="connection-box">
-        <label>URL do ngrok:</label>
+        <label style="font-size:12px;">URL do ngrok:</label>
         <input type="text" id="server-url" placeholder="https://....ngrok-free.dev">
-        <button id="btn-connect" class="primary" style="margin-top:10px">CONECTAR</button>
-        <div id="status-display" class="status disconnected">
-            <span class="dot"></span> <span id="status-text">Desconectado</span>
-        </div>
+        <button id="btn-connect" class="primary">CONECTAR</button>
+        <div id="status-display" class="status disconnected">Desconectado</div>
     </div>
 
     <div id="main-ui" class="hidden">
-        <hr style="border-color:#444; margin:15px 0">
 
-        <div id="selection-box" style="background:#333; padding:10px; border-radius:4px;">
-            <h3>Selecionado: <span id="sel-name">Nenhum</span></h3>
-            <p>ID: <span id="sel-id" style="font-size:10px; color:#aaa">...</span></p>
-            <button id="btn-copy" class="secondary">Copiar ID</button>
-            <br><br>
-            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; background:#222; padding:5px;">
+        <div id="selection-box" style="background:#333; padding:10px; border-radius:4px; margin-bottom:15px;">
+            <h3 style="margin-top:0">Token Selecionado</h3>
+            <div style="margin-bottom:8px">
+                <strong id="sel-name" style="font-size:1.1em">Nenhum</strong><br>
+                <span id="sel-id" style="font-size:10px; color:#aaa; font-family:monospace">...</span>
+            </div>
+
+            <div style="display:flex; gap:5px;">
+                <button id="btn-copy" class="secondary">📋 Copiar ID</button>
+            </div>
+
+            <label
+                style="display:flex; align-items:center; gap:8px; cursor:pointer; background:#222; padding:8px; margin-top:10px; border-radius:4px;">
                 <input type="checkbox" id="chk-bot">
-                🤖 Controlar como BOT
+                <span>🤖 Controlar como BOT</span>
             </label>
         </div>
+
+        <h3>Zonas Escondidas</h3>
+        <button id="btn-add-zone" class="secondary" style="border:1px dashed #777">+ Criar Zona</button>
+        <div id="zones-list"></div>
+
+        <h3>Lista de Tokens (Clique para Selecionar)</h3>
+        <div id="tokens-list"></div>
+
     </div>
 
-    <h3>Logs:</h3>
+    <h3 style="margin-top:20px">Logs</h3>
     <div id="log-container"></div>
 
-    <!-- CARREGAR EXPLICITAMENTE DO UNPKG -->
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
     <script>
-        // Logger manual
         function log(msg, type = 'info') {
             const div = document.createElement('div');
-            div.className = 'log-entry ' + type;
+            div.style.color = type === 'error' ? '#ff5555' : (type === 'success' ? '#55ff55' : '#0f0');
             div.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
             document.getElementById('log-container').prepend(div);
-            console.log(msg);
+            // Limit logs
+            if (document.getElementById('log-container').children.length > 50)
+                document.getElementById('log-container').lastChild.remove();
         }
 
-        log('Iniciando v5...');
-
-        // Globais
         let socket = null;
         let OBR = null;
+        let hiddenZones = new Map();
+        let tokens = new Map();
+        let currentSelectedId = null;
 
-        // Elementos
+        // UI Refs
         const btnConnect = document.getElementById('btn-connect');
         const inpUrl = document.getElementById('server-url');
-        const statusText = document.getElementById('status-text');
         const statusDisplay = document.getElementById('status-display');
         const mainUI = document.getElementById('main-ui');
 
-        // Elementos de seleção
         const selName = document.getElementById('sel-name');
         const selId = document.getElementById('sel-id');
-        const btnCopy = document.getElementById('btn-copy');
         const chkBot = document.getElementById('chk-bot');
+        const zonesList = document.getElementById('zones-list');
+        const tokensList = document.getElementById('tokens-list');
 
-        // Carregar URL salva
+        // Load URL
         const savedUrl = localStorage.getItem('discordBridge_serverUrl');
         if (savedUrl) inpUrl.value = savedUrl;
 
-        // BOTÃO CONECTAR
+        // --- CONNECTION ---
         btnConnect.onclick = async () => {
-            log('Botão clicado!');
             const url = inpUrl.value.trim();
             if (!url) return log('URL vazia!', 'error');
 
             localStorage.setItem('discordBridge_serverUrl', url);
-
             btnConnect.disabled = true;
-            btnConnect.innerText = 'Conectando...';
-            statusText.innerText = 'Conectando...';
-            statusDisplay.className = 'status connecting';
+            btnConnect.innerText = ' Conectando...';
 
             try {
-                if (typeof io === 'undefined') throw new Error('Socket.IO não carregou!');
+                if (typeof io === 'undefined') throw new Error('Socket.IO fail');
 
-                log(`Conectando a ${url}...`);
-                socket = io(url, {
-                    query: { type: 'owlbear' },
-                    transports: ['websocket', 'polling']
-                });
+                socket = io(url, { query: { type: 'owlbear' }, transports: ['websocket', 'polling'] });
 
                 socket.on('connect', () => {
-                    log('✅ Conectado ao servidor!');
-                    statusText.innerText = 'Conectado';
+                    log('Conectado!', 'success');
+                    statusDisplay.innerText = 'Conectado';
                     statusDisplay.className = 'status connected';
                     btnConnect.innerText = 'Desconectar';
                     btnConnect.disabled = false;
-                    btnConnect.onclick = () => location.reload(); // Simples desconexão
+                    btnConnect.onclick = () => location.reload();
 
-                    // Mostrar UI manual e iniciar OBR
                     mainUI.classList.remove('hidden');
                     socket.emit('sync:request', {});
                 });
 
-                socket.on('connect_error', (err) => {
-                    log('Erro conexão: ' + err.message, 'error');
-                    resetBtn();
+                socket.on('connect_error', (err) => log('Erro: ' + err.message, 'error'));
+
+                socket.on('sync:response', (data) => {
+                    if (data.hiddenZones) {
+                        data.hiddenZones.forEach(z => hiddenZones.set(z.id, z));
+                        renderZones();
+                    }
                 });
 
-                // Bot Control handlers
-                chkBot.onchange = () => {
-                    const id = selId.innerText;
-                    if (id === '...') return;
-
-                    if (chkBot.checked) {
-                        socket.emit('bot:register', { tokenId: id, name: selName.innerText });
-                        log('Registrado como BOT');
-                    } else {
-                        socket.emit('bot:unregister', { tokenId: id });
-                        log('Desregistrado BOT');
-                    }
-                };
-
             } catch (e) {
-                log('Erro fatal: ' + e.message, 'error');
-                resetBtn();
+                log('Erro Fatal: ' + e.message, 'error');
+                btnConnect.disabled = false;
+                btnConnect.innerText = 'Conectar';
             }
         };
 
-        function resetBtn() {
-            btnConnect.disabled = false;
-            btnConnect.innerText = 'Conectar';
-            statusText.innerText = 'Erro';
-            statusDisplay.className = 'status disconnected';
+        // --- BOT CONTROL ---
+        chkBot.onchange = () => {
+            if (!currentSelectedId) return;
+            const name = selName.innerText;
+            if (chkBot.checked) {
+                socket?.emit('bot:register', { tokenId: currentSelectedId, name });
+                log('Bot registrado: ' + name, 'success');
+            } else {
+                socket?.emit('bot:unregister', { tokenId: currentSelectedId });
+                log('Bot removido');
+            }
+            // Update local token state visual
+            if (tokens.has(currentSelectedId)) {
+                tokens.get(currentSelectedId).isBot = chkBot.checked;
+                renderTokens();
+            }
+        };
+
+        document.getElementById('btn-copy').onclick = () => {
+            if (currentSelectedId) {
+                navigator.clipboard.writeText(currentSelectedId);
+                log('ID Copiado!');
+            }
+        };
+
+        // --- ZONES ---
+        document.getElementById('btn-add-zone').onclick = async () => {
+            if (!OBR) return log('OBR não carregado', 'error');
+            try {
+                const center = await OBR.viewport.getCenter();
+                // Create a rectangle
+                const shape = OBR.buildShape()
+                    .width(300).height(300)
+                    .shapeType('RECTANGLE')
+                    .fillColor('#FFAA00').fillOpacity(0.2)
+                    .strokeColor('#FFAA00').strokeWidth(2)
+                    .position(center)
+                    .layer('DRAWING')
+                    .name('Zona Oculta')
+                    .metadata({ hiddenZone: true })
+                    .build();
+
+                await OBR.scene.items.addItems([shape]);
+
+                const zData = { id: shape.id, bounds: { x: center.x, y: center.y, width: 300, height: 300 } };
+                hiddenZones.set(shape.id, zData);
+                socket?.emit('zone:hidden:add', zData);
+                renderZones();
+                log('Zona criada!', 'success');
+            } catch (e) { log('Erro zona: ' + e.message, 'error'); }
+        };
+
+        function renderZones() {
+            zonesList.innerHTML = '';
+            hiddenZones.forEach(z => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.innerHTML = `<span>Zona ${z.id.slice(-6)}</span> <button class="danger">🗑️</button>`;
+                div.querySelector('button').onclick = async () => {
+                    await OBR?.scene.items.deleteItems([z.id]);
+                    hiddenZones.delete(z.id);
+                    socket?.emit('zone:hidden:remove', { zoneId: z.id });
+                    renderZones();
+                };
+                zonesList.appendChild(div);
+            });
+            if (hiddenZones.size === 0) zonesList.innerHTML = '<small style="color:#777">Nenhuma zona</small>';
         }
 
-        // CARREGAR OBR DINAMICAMENTE
-        log('Carregando OBR SDK...');
+        // --- TOKENS LIST & SELECTION ---
+        function renderTokens() {
+            tokensList.innerHTML = '';
+            tokens.forEach(t => {
+                const div = document.createElement('div');
+                div.className = `list-item token-entry ${t.id === currentSelectedId ? 'selected' : ''}`;
+                div.innerHTML = `
+                    <span>${t.name}</span>
+                    <span>
+                        ${t.isBot ? '🤖' : ''}
+                        ${t.visible === false ? '🙈' : ''}
+                    </span>`;
+                div.onclick = () => {
+                    OBR.player.select([t.id]); // trigger OBR selection
+                };
+                tokensList.appendChild(div);
+            });
+        }
+
+        function updateSelectionUI(item, isBot = false) {
+            currentSelectedId = item ? item.id : null;
+            if (item) {
+                selName.innerText = item.name || item.text?.plainText || 'Token';
+                selId.innerText = item.id;
+                chkBot.checked = isBot; // we need to know if it's already a bot
+            } else {
+                selName.innerText = 'Nenhum';
+                selId.innerText = '...';
+                chkBot.checked = false;
+            }
+            renderTokens(); // Update highlights
+        }
+
+        // --- OBR INIT ---
         import('https://unpkg.com/@owlbear-rodeo/sdk@3.1.0/lib/index.js')
-            .then(module => {
-                OBR = module.default || module; // Handle default export quirks
-                window.OBR = OBR;
-                log('✅ OBR SDK Carregado!');
-
+            .then(m => {
+                OBR = m.default || m;
+                log('OBR Carregado');
                 OBR.onReady(() => {
-                    log('✅ OBR Pronto!');
+                    log('OBR Pronto');
 
-                    // Listener de seleção
+                    // Track Items for List
+                    const refreshItems = async (items) => {
+                        const chars = items.filter(i => i.layer === 'CHARACTER' || i.type === 'IMAGE');
+                        tokens.clear();
+                        chars.forEach(c => {
+                            tokens.set(c.id, {
+                                id: c.id,
+                                name: c.name || c.text?.plainText || 'Token',
+                                visible: c.visible,
+                                isBot: false // We need sync to know truth
+                            });
+                        });
+                        renderTokens();
+                    };
+                    OBR.scene.items.getItems().then(refreshItems);
+                    OBR.scene.items.onChange(refreshItems);
+
+                    // Track Selection
                     OBR.player.onChange(async () => {
-                        const selection = await OBR.player.getSelection();
-                        if (selection && selection.length > 0) {
-                            const id = selection[0];
-                            const items = await OBR.scene.items.getItems([id]);
-                            if (items.length > 0) {
-                                const item = items[0];
-                                updateSelection(item);
+                        const sel = await OBR.player.getSelection();
+                        if (sel.length > 0) {
+                            const items = await OBR.scene.items.getItems([sel[0]]);
+                            if (items.length) {
+                                // Try to find if bot
+                                // This requires us to know if it is a bot from server state
+                                // For now, we rely on local toggle state or sync
+                                updateSelectionUI(items[0]);
                             }
                         } else {
-                            selName.innerText = 'Nenhum';
-                            selId.innerText = '...';
-                            chkBot.checked = false;
+                            updateSelectionUI(null);
                         }
                     });
                 });
-            })
-            .catch(err => log('Erro OBR: ' + err.message, 'error'));
-
-        function updateSelection(item) {
-            selName.innerText = item.name || item.text?.plainText || 'Sem nome';
-            selId.innerText = item.id;
-            // Aqui precisaria saber se ele já é bot pelo servidor, 
-            // mas por enquanto vamos deixar manual ou resetado
-            // Idealmente receberíamos o estado do servidor.
-        }
-
-        btnCopy.onclick = () => {
-            const id = selId.innerText;
-            if (id !== '...') {
-                navigator.clipboard.writeText(id);
-                log('ID copiado!');
-            }
-        };
+            });
 
     </script>
 </body>
